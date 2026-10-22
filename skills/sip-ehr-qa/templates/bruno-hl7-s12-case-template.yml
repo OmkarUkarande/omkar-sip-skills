@@ -1,0 +1,41 @@
+info:
+  name: TC08 Patient A - S12 Spinal Fusion Case - Expect Created
+  type: http
+  seq: 5
+http:
+  method: POST
+  url: '{{SERVER_URL}}/integration/ehr/messages'
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/hl7-v2
+  body:
+    type: text
+    data: |-
+      MSH|^~\&|SYNTH_EHR|SYNTH_GLOBUS|SIP|SIP|20261022100000||SIU^S12^SIU_S12|{{QA_EVENT_ID}}|P|2.5.1
+      SCH|PLACER-APPT-CI-A2-{{QA_CI_STAMP}}|APPT-CI-A2-{{QA_CI_STAMP}}|||||SURGERY^Surgical case||||||||||||||||||Booked
+      PID|1||{{QA_CI_MRN_A}}^^^SYNTH_GLOBUS^MR||QACareA^Care||19800101|F
+      DG1|1||M41.125^Adolescent idiopathic scoliosis, thoracolumbar region^I10||20240312|W
+      RGS|1
+      AIS|1||22802^Arthrodesis posterior 7 to 12 segments^C4|20261210080000-0600|||240|min
+      AIP|1||SYNTH-PROV-1860^Surgeon^Synthetic^^^^MD^^SYNTH_GLOBUS^^^^PRN|SURG^Surgeon
+  auth:
+    type: bearer
+    token: '{{EHR_HL7_FEED_TOKEN}}'
+runtime:
+  scripts:
+  - type: before-request
+    code: |-
+        bru.setVar("QA_EVENT_ID", `qa-ci-${bru.getVar("QA_CI_STAMP")}-a-s12-fusion`);
+  assertions:
+  - expression: res.status
+    operator: eq
+    value: '202'
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: |-
+  Control. Spinal fusion case 2026-12-10 under scoliosis episode, assigned to Globus physician.

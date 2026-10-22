@@ -1,0 +1,42 @@
+info:
+  name: TC20 Unicode Patient - A04 Create
+  type: http
+  seq: 1
+http:
+  method: POST
+  url: '{{SERVER_URL}}/integration/ehr/messages'
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/hl7-v2
+  body:
+    type: text
+    data: |-
+      MSH|^~\&|SYNTH_EHR|SYNTH_GLOBUS|SIP|SIP|20261022120000||ADT^A04^ADT_A01|{{QA_EVENT_ID}}|P|2.5.1||||||UNICODE UTF-8
+      EVN|A04|20261022120000
+      PID|1||{{QA_UNI_MRN}}^^^SYNTH_GLOBUS^MR||Ñúñez-Øberg^José||19800101|M|||1 Test St^^Springfield^IL^62701||^PRN^PH^^1^217^{{QA_UNI_PHONE}}
+      PV1|1|O
+  auth:
+    type: bearer
+    token: '{{EHR_HL7_FEED_TOKEN}}'
+runtime:
+  scripts:
+  - type: before-request
+    code: |-
+      const s = Date.now();
+      bru.setVar("QA_UNI_STAMP", s);
+      bru.setVar("QA_UNI_MRN", `QA-UNI-${s}`);
+      bru.setVar("QA_UNI_PHONE", `66${String(s % 100000).padStart(5, "0")}`);
+      bru.setVar("QA_EVENT_ID", `qa-uni-${s}-a04`);
+  assertions:
+  - expression: res.status
+    operator: eq
+    value: '202'
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: |-
+  TC20. New patient José Ñúñez-Øberg on Globus HL7 feed.

@@ -1,0 +1,47 @@
+info:
+  name: TC13 Patient X - FHIR Create On Spine Org 1
+  type: http
+  seq: 9
+http:
+  method: POST
+  url: '{{SERVER_URL}}/integration/ehr/messages'
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/fhir+json
+  - name: X-Ehr-Event-Id
+    value: '{{QA_EVENT_ID}}'
+  - name: X-Ehr-Event-Type
+    value: create
+  body:
+    type: json
+    data: |-
+      {
+        "resourceType": "Patient",
+        "id": "{{QA_CI_MRN_X}}",
+        "identifier": [{ "system": "urn:synthetic:spine-center:mrn", "value": "{{QA_CI_MRN_X}}" }],
+        "name": [{ "use": "official", "family": "QACareX", "given": ["Care"] }],
+        "birthDate": "1980-01-01",
+        "gender": "female",
+        "telecom": [{ "system": "phone", "value": "217{{QA_CI_PHONE_X}}" }]
+      }
+  auth:
+    type: bearer
+    token: '{{EHR_FEED_TOKEN}}'
+runtime:
+  scripts:
+  - type: before-request
+    code: |-
+      bru.setVar("QA_EVENT_ID", `qa-ci-${bru.getVar("QA_CI_STAMP")}-x-fhir`);
+  assertions:
+  - expression: res.status
+    operator: eq
+    value: '202'
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: |-
+  TC13 setup. Patient X created in org 1 (Spine Center of Atlanta) with MRN QA-CI-X-...
